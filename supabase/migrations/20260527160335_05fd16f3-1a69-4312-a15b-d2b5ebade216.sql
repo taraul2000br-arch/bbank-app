@@ -1,0 +1,1 @@
+ALTER TABLE public.kyc_submissions ADD COLUMN IF NOT EXISTS rejected_parts text[] NOT NULL DEFAULT '{}';

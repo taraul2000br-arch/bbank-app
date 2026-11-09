@@ -1,0 +1,1 @@
+ALTER TABLE public.card_requests DROP COLUMN IF EXISTS card_number;
