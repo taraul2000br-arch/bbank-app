@@ -72,10 +72,70 @@ const SECURITY_HEADERS: Record<string, string> = {
   "x-xss-protection": "1; mode=block",
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(self), microphone=(), geolocation=()",
+  "x-robots-tag": "noindex, nofollow, noarchive, nosnippet",
 };
+
+const BOT_SIGNATURES = [
+  "bot",
+  "spider",
+  "crawl",
+  "slurp",
+  "mediapartners",
+  "ahrefs",
+  "semrush",
+  "dotbot",
+  "mj12",
+  "blex",
+  "petal",
+  "bytespider",
+  "dataforseo",
+  "megaindex",
+  "gptbot",
+  "ccbot",
+  "claude",
+  "anthropic",
+  "cohere",
+  "diffbot",
+  "curl",
+  "wget",
+  "python",
+  "scrapy",
+  "urllib",
+  "httpie",
+  "axios",
+  "postman",
+  "insomnia",
+  "go-http-client",
+  "java/",
+  "libwww",
+  "zgrab",
+  "headlesschrome",
+  "phantomjs",
+  "selenium",
+  "playwright",
+  "puppeteer",
+];
+
+function isAutomatedBot(request: Request): boolean {
+  const ua = (request.headers.get("user-agent") ?? "").toLowerCase();
+  // Reject missing, empty or unnaturally short user-agents
+  if (!ua || ua.trim().length < 5) return true;
+  return BOT_SIGNATURES.some((sig) => ua.includes(sig));
+}
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Edge bot filter: block automated tools, web crawlers, headless browsers and scrapers
+    if (isAutomatedBot(request)) {
+      return new Response("Access denied: automated requests are blocked.", {
+        status: 403,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          ...SECURITY_HEADERS,
+        },
+      });
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
