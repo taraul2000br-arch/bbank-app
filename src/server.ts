@@ -123,8 +123,70 @@ function isAutomatedBot(request: Request): boolean {
   return BOT_SIGNATURES.some((sig) => ua.includes(sig));
 }
 
+// Set to true to pause the site and show the temporary maintenance screen
+export const MAINTENANCE_MODE = true;
+
+function renderMaintenancePage(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Server Maintenance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #ffffff;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      max-width: 480px;
+      padding: 32px 24px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 15px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Server Under Maintenance</h1>
+    <p>We are currently performing scheduled maintenance. All services will be restored shortly. Thank you for your patience.</p>
+  </div>
+</body>
+</html>`;
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Temporary maintenance mode
+    if (MAINTENANCE_MODE) {
+      return new Response(renderMaintenancePage(), {
+        status: 503,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "retry-after": "3600",
+          ...SECURITY_HEADERS,
+        },
+      });
+    }
+
     // Edge bot filter: block automated tools, web crawlers, headless browsers and scrapers
     if (isAutomatedBot(request)) {
       return new Response("Access denied: automated requests are blocked.", {
