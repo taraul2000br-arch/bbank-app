@@ -124,7 +124,7 @@ function isAutomatedBot(request: Request): boolean {
 }
 
 // Set to true to pause the site and show the temporary maintenance screen
-export const MAINTENANCE_MODE = true;
+export const MAINTENANCE_MODE = false;
 
 function renderMaintenancePage(): string {
   return `<!DOCTYPE html>
